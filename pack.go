@@ -59,7 +59,7 @@ func DoFetch(mType string, offset, newsCount int) {
 	if err != nil {
 		log.Fatalf("持久化素材信息失败: %v \n", err)
 	}
-	fmt.Println(affected)
+	fmt.Println("新增", affected, "条")
 }
 
 // ParseItem 解析单个图文
