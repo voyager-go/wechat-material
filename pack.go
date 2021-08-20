@@ -1,12 +1,8 @@
 package main
 
 import (
-	"bytes"
-	"crypto/md5"
 	"fmt"
-	"io/ioutil"
 	"log"
-	"net/http"
 	"regexp"
 	"strings"
 	"time"
@@ -14,7 +10,8 @@ import (
 	"github.com/PuerkitoBio/goquery"
 )
 
-func PackageArticle() {
+// PackageArticle
+func Handler() {
 	mType := ArticleTypeNews.String()
 	count := GetMaterialCount()
 	pageSize := 20
@@ -28,10 +25,11 @@ func PackageArticle() {
 	}
 }
 
+// DoFetch 开始抓取素材列表信息
 func DoFetch(mType string, offset, newsCount int) {
 	lists := GetMaterialList(mType, offset, newsCount)
 	obj := new(Article)
-	articles := make([]*Article, 1)
+	articles := make([]*Article, newsCount)
 	for idx := range lists.Item {
 		for itemIdx := range lists.Item[idx].Content.NewsItem {
 			// 解析出的单个图文消息
@@ -39,6 +37,7 @@ func DoFetch(mType string, offset, newsCount int) {
 			NewsItem := lists.Item[idx].Content.NewsItem
 			newsArticle := new(Article)
 			newsArticle.Title = NewsItem[itemIdx].Title
+			newsArticle.Cover = UploadRemoteFile(NewsItem[itemIdx].ThumbURL)
 			newsArticle.Type = uint(ArticleTypeNews)
 			newsArticle.Author = NewsItem[itemIdx].Author
 			newsArticle.Digest = NewsItem[itemIdx].Digest
@@ -56,7 +55,7 @@ func DoFetch(mType string, offset, newsCount int) {
 			canUseArticles = append(canUseArticles, item)
 		}
 	}
-	affected, err := obj.Create(articles)
+	affected, err := obj.Create(canUseArticles)
 	if err != nil {
 		log.Fatalf("持久化素材信息失败: %v \n", err)
 	}
@@ -69,23 +68,11 @@ func ParseItem(article string) string {
 	article = r.ReplaceAllString(article, "src")
 	document, err := goquery.NewDocumentFromReader(strings.NewReader(article))
 	if err != nil {
-		log.Fatalln(err)
+		log.Fatalf("图文素材解析失败:%v \n", err)
 	}
 	document.Find("img").Each(func(i int, selection *goquery.Selection) {
 		imgUrl, _ := selection.Attr("src")
-		resp, err := http.Get(imgUrl)
-		defer resp.Body.Close()
-		if err != nil {
-			log.Fatalln(err)
-		}
-		body, err := ioutil.ReadAll(resp.Body)
-		if err != nil {
-			log.Fatalln(err)
-		}
-		data := []byte(imgUrl)
-		md5Sum := md5.Sum(data)
-		fileName := fmt.Sprintf("%x", md5Sum) + ".jpg"
-		imgSrc := Upload(fileName, bytes.NewReader(body))
+		imgSrc := UploadRemoteFile(imgUrl)
 		selection.SetAttr("src", imgSrc)
 	})
 	html, _ := document.Html()

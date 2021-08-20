@@ -12,7 +12,7 @@ const (
 
 type Article struct {
 	ID             uint   `xorm:"pk autoincr id"`
-	Title          string `xorm:"title varchar(200) unique notnull"`
+	Title          string `xorm:"title varchar(200) notnull"`
 	Author         string `xorm:"author varchar(80)"`
 	Content        string `xorm:"content text"`
 	Cover          string `xorm:"cover varchar(300)"`
@@ -27,6 +27,7 @@ type Article struct {
 	CreateTime     string `xorm:"create_time"`
 }
 
+// 素材类型的枚举
 func (at ArticleType) String() string {
 	switch at {
 	case ArticleTypeImages:

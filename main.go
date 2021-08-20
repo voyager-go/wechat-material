@@ -3,7 +3,7 @@ package main
 func main() {
 	LoadConfig()
 	Conn()
-	PackageArticle()
+	Handler()
 	// defer XEngine.Close()
 	// http.Handle("/images/", http.StripPrefix("/images/", http.FileServer(http.Dir("images"))))
 	// http.Handle("/ueditor/", http.StripPrefix("/ueditor/", http.FileServer(http.Dir("ueditor"))))

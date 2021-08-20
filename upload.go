@@ -1,9 +1,13 @@
 package main
 
 import (
+	"bytes"
+	"crypto/md5"
 	"fmt"
 	"io"
+	"io/ioutil"
 	"log"
+	"net/http"
 	"os"
 
 	"github.com/aliyun/aliyun-oss-go-sdk/oss"
@@ -79,4 +83,21 @@ func Upload(objectKey string, fileReader io.Reader) string {
 		os.Exit(-1)
 	}
 	return "https://" + BucketName + "." + EndPoint + "/" + objectKey
+}
+
+// UploadRemoteFile 获取远程图片并上传到OSS
+func UploadRemoteFile(fileUrl string) string {
+	resp, err := http.Get(fileUrl)
+	defer resp.Body.Close()
+	if err != nil {
+		log.Fatalf("获取远程图片失败:%v \n", err)
+	}
+	body, err := ioutil.ReadAll(resp.Body)
+	if err != nil {
+		log.Fatalf("读取远程图片失败:%v \n", err)
+	}
+	data := []byte(fileUrl)
+	md5Sum := md5.Sum(data)
+	fileName := fmt.Sprintf("%x", md5Sum) + ".jpg"
+	return Upload(fileName, bytes.NewReader(body))
 }
