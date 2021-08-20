@@ -14,21 +14,9 @@ import (
 type MaterialList struct {
 	Item []struct {
 		Content struct {
-			CreateTime int64 `json:"create_time"`
-			NewsItem   []struct {
-				Author             string `json:"author"`
-				Content            string `json:"content"`
-				ContentSourceURL   string `json:"content_source_url"`
-				Digest             string `json:"digest"`
-				NeedOpenComment    int64  `json:"need_open_comment"`
-				OnlyFansCanComment int64  `json:"only_fans_can_comment"`
-				ShowCoverPic       int64  `json:"show_cover_pic"`
-				ThumbMediaID       string `json:"thumb_media_id"`
-				ThumbURL           string `json:"thumb_url"`
-				Title              string `json:"title"`
-				URL                string `json:"url"`
-			} `json:"news_item"`
-			UpdateTime int64 `json:"update_time"`
+			CreateTime int64              `json:"create_time"`
+			NewsItem   []MaterialNewsItem `json:"news_item"`
+			UpdateTime int64              `json:"update_time"`
 		} `json:"content"`
 		MediaID    string `json:"media_id"`
 		UpdateTime int64  `json:"update_time"`
@@ -37,12 +25,27 @@ type MaterialList struct {
 	TotalCount int64 `json:"total_count"`
 }
 
+// MaterialNewsItem 单个素材
+type MaterialNewsItem struct {
+	Author             string `json:"author"`
+	Content            string `json:"content"`
+	ContentSourceURL   string `json:"content_source_url"`
+	Digest             string `json:"digest"`
+	NeedOpenComment    int64  `json:"need_open_comment"`
+	OnlyFansCanComment int64  `json:"only_fans_can_comment"`
+	ShowCoverPic       int64  `json:"show_cover_pic"`
+	ThumbMediaID       string `json:"thumb_media_id"`
+	ThumbURL           string `json:"thumb_url"`
+	Title              string `json:"title"`
+	URL                string `json:"url"`
+}
+
 // MaterialCount 素材总数
 type MaterialCount struct {
-	ImageCount int64 `json:"image_count"`
-	NewsCount  int64 `json:"news_count"`
-	VideoCount int64 `json:"video_count"`
-	VoiceCount int64 `json:"voice_count"`
+	ImageCount int `json:"image_count"`
+	NewsCount  int `json:"news_count"`
+	VideoCount int `json:"video_count"`
+	VoiceCount int `json:"voice_count"`
 }
 
 // ParseTemplate 解析网页模板
@@ -52,18 +55,7 @@ func ParseTemplate(w http.ResponseWriter, r *http.Request) {
 		fmt.Fprintf(w, "parse html errors: %s", err.Error())
 		return
 	}
-	lists := GetMaterialList()
-	var HtmlStr string
-	for idx := range lists.Item {
-		for itemIdx := range lists.Item[idx].Content.NewsItem {
-			// 解析出的单个图文消息
-			// 持久化到数据库
-			ParseItem(lists.Item[idx].Content.NewsItem[itemIdx].Content)
-
-		}
-
-	}
-	Html := template.HTML(HtmlStr)
+	Html := template.HTML("")
 	t.Execute(w, Html)
 }
 
@@ -83,13 +75,13 @@ func GetMaterialCount() *MaterialCount {
 }
 
 // GetMaterialList 获取素材列表
-func GetMaterialList() *MaterialList {
+func GetMaterialList(mType string, offset, pageSize int) *MaterialList {
 	url := "https://api.weixin.qq.com/cgi-bin/material/batchget_material?access_token=%s"
 	wholeUrl := fmt.Sprintf(url, GetAccessToken())
 	data := make(map[string]interface{})
-	data["type"] = "news"
-	data["offset"] = "7"
-	data["count"] = "1"
+	data["type"] = mType
+	data["offset"] = offset
+	data["count"] = pageSize
 	bytes, err := json.Marshal(data)
 	if err != nil {
 		log.Fatalln(err)

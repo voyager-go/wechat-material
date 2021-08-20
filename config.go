@@ -25,12 +25,24 @@ type OSSConfig struct {
 	BucketName      string `yaml:"BucketName"`
 }
 
-// Config 全局配置集合
-type Config struct {
-	WeChatConfig WeChatConfig `yaml:"WeChat"`
-	OSSConfig    OSSConfig    `yaml:"OSS"`
+// DataBaseConfig 数据库配置
+type DataBaseConfig struct {
+	Driver string `yaml:"Driver"`
+	Host   string `yaml:"Host"`
+	Port   int    `yaml:"Port"`
+	User   string `yaml:"User"`
+	Pass   string `yaml:"Pass"`
+	DBName string `yaml:"DBName"`
 }
 
+// Config 全局配置集合
+type Config struct {
+	WeChatConfig   WeChatConfig   `yaml:"WeChat"`
+	OSSConfig      OSSConfig      `yaml:"OSS"`
+	DataBaseConfig DataBaseConfig `yaml:"DataBase"`
+}
+
+// LoadConfig 加载配置文件
 func LoadConfig() {
 	yFile, err := ioutil.ReadFile("config.yaml")
 	if err != nil {

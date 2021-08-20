@@ -18,13 +18,13 @@ var (
 
 var (
 	client *oss.Client
-	err    error
 	bucket *oss.Bucket
 )
 
 // NewClient 新建OSS客户端
 func NewClient() {
 	EndPoint, AccessKeyID, AccessKeySecret, BucketName = GlobalCfg.OSSConfig.EndPoint, GlobalCfg.OSSConfig.AccessKeyID, GlobalCfg.OSSConfig.AccessKeySecret, GlobalCfg.OSSConfig.BucketName
+	var err error
 	client, err = oss.New(EndPoint, AccessKeyID, AccessKeySecret)
 	if err != nil {
 		log.Fatalln(err)
@@ -34,6 +34,7 @@ func NewClient() {
 // CreateBucket 创建一个bucket
 func CreateBucket() {
 	NewClient()
+	var err error
 	err = client.CreateBucket(BucketName)
 	if err != nil {
 		log.Fatalln(err)
@@ -61,7 +62,7 @@ func GetBucket() {
 func Upload(objectKey string, fileReader io.Reader) string {
 	NewClient()
 	GetBucket()
-
+	var err error
 	// 指定存储类型为标准存储，缺省也为标准存储。
 	storageType := oss.ObjectStorageClass(oss.StorageStandard)
 

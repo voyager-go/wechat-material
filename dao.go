@@ -8,15 +8,17 @@ import (
 	"github.com/go-xorm/xorm"
 )
 
-const (
-	driverName     = "mysql"
-	dataSourceName = "root:root@tcp(127.0.0.1:3306)/xorm?charset=utf8"
+var (
+	XEngine *xorm.Engine
 )
 
 func Conn() {
-	engine, err := xorm.NewEngine(driverName, dataSourceName)
+	cfg := GlobalCfg.DataBaseConfig
+	driverName := cfg.Driver
+	dataSourceName := fmt.Sprintf("%s:%s@tcp(%s:%d)/%s?charset=utf8mb4", cfg.User, cfg.Pass, cfg.Host, cfg.Port, cfg.DBName)
+	var err error
+	XEngine, err = xorm.NewEngine(driverName, dataSourceName)
 	if err != nil {
-		log.Fatalln(err)
+		log.Fatalf("数据库连接失败: %v \n", err)
 	}
-	fmt.Println(engine.Tables)
 }
